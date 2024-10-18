@@ -16,13 +16,14 @@ namespace Paint_Program
         public Form1()
         {
             InitializeComponent();
-
+        
+            // set the form size
             this.Width = 950;
             this.Height = 700;
-            bm = new Bitmap(pic.Width, pic.Height);
-            g = Graphics.FromImage(bm);
-            g.Clear(Color.White);
-            pic.Image = bm;
+            bm = new Bitmap(pic.Width, pic.Height); // create a bitmap that matches the size of the picturebox
+            g = Graphics.FromImage(bm); // create graphics object to draw on the bitmap
+            g.Clear(Color.White); // clear the drawing area with white color
+            pic.Image = bm; // assign the bitmap to the picturebox's image
 
         }
 
@@ -31,10 +32,10 @@ namespace Paint_Program
         Graphics g;
         bool paint = false;
         Point px, py;
-        Pen p = new Pen(Color.Black, 1);
-        Pen erase = new Pen(Color.White, 10);
-        int index;
-        int x, y, sX, sY, cX, cY;
+        Pen p = new Pen(Color.Black, 1); // pen for drawing
+        Pen erase = new Pen(Color.White, 10); // pen for erasing
+        int index; // to keep track of selected tool
+        int x, y, sX, sY, cX, cY; // coordinates for drawing shapes
 
         // create variable names for color dialogbox & new color
         ColorDialog cd = new ColorDialog();
@@ -45,88 +46,89 @@ namespace Paint_Program
             paint = true;
             py = e.Location;
 
-            cX = e.X; // if mouse is down then set the X,Y coordinates to draw from
+            cX = e.X; // store starting coordinates for drawing shapes
             cY = e.Y;
         }
 
         private void pic_MouseMove(object sender, MouseEventArgs e)
         {
-            if (paint)
+            if (paint) // if painting is true, draw based on the selected tool
             {
-                if (index == 1) // method for pencil to draw free-form line
+                if (index == 1) // pencil tool for free-hand drawing
                 {
                     px = e.Location;
                     g.DrawLine(p, px, py);
                     py = px;
                 }
-                if (index == 2) // code to erase graphics
+                if (index == 2) // eraser tool
                 {
                     px = e.Location;
                     g.DrawLine(erase, px, py);
                     py = px;
                 }
             }
-            pic.Refresh();
+            pic.Refresh(); // refresh the picturebox to show the drawing
 
-            x = e.X; // if mouse is moving then set the start and end points to get the height & width
+            x = e.X; // update coordinates as mouse moves
             y = e.Y;
-            sX = e.X - cX;
-            sY = e.Y - cY;
+            sX = e.X - cX; // width of shape
+            sY = e.Y - cY; // height of shape
         }
 
         private void pic_MouseUp(object sender, MouseEventArgs e)
         {
-            paint = false;
+            paint = false; // stop painting when mouse is up
 
             sX = x - cX;
             sY = y - cY;
 
-            if (index == 3) // method to draw the ellipse if mouse is up, paint bool value is false, & index == 3
+            if (index == 3) // draw ellipse when mouse is released
             {
                 g.DrawEllipse(p, cX, cY, sX, sY);
             }
 
-            if (index == 4) // method to draw rectangle if mouse is up, paint bool value is false, & index == 4
+            if (index == 4) // draw rectangle when mouse is released
             {
                 g.DrawRectangle(p, cX, cY, sX, sY);
             }
 
-            if (index == 5) // method to draw line if mouse is up, paint bool value is false, & index == 5 
+            if (index == 5) // draw line when mouse is released
             {
                 g.DrawLine(p, cX, cY, x, y); 
             }
         }
 
+        // buttons to switch between different tools
         private void btn_pencil_Click(object sender, EventArgs e)
         {
-            index = 1;
+            index = 1; // pencil tool
         }
 
         private void btn_eraser_Click(object sender, EventArgs e)
         {
-            index = 2;
+            index = 2; // eraser tool
         }
 
         private void btn_ellipse_Click(object sender, EventArgs e)
         {
-            index = 3;
+            index = 3; // ellipse tool
         }
 
         private void btn_rect_Click(object sender, EventArgs e)
         {
-            index = 4;
+            index = 4; // rectangle tool
         }
 
         private void btn_line_Click(object sender, EventArgs e)
         {
-            index = 5;
+            index = 5; // line tool
         }
 
         private void pic_Paint(object sender, PaintEventArgs e)
         {
-            Graphics g = e.Graphics; // method to draw the selected index and display the current drawing positions if bool paint value is true
+            Graphics g = e.Graphics; 
 
-            if (paint)
+            if (paint) // draw shapes in real-time as user drags the mouse
             {
                 if (index == 3) 
                 {
@@ -146,15 +148,14 @@ namespace Paint_Program
         }
 
         private void btn_clear_Click(object sender, EventArgs e)
-        {
+        { // clear the drawing area
             g.Clear(Color.White);
             pic.Image = bm;
             index = 0;
         }
 
-        // if color btn is pressed then open color dialogbox and set the selected color to the new_color, pen color and pic_color...
         private void btn_color_Click(object sender, EventArgs e)
-        {
+        { // open color dialog to pick a new color for the pen
             cd.ShowDialog();
             new_color = cd.Color;
             pic_color.BackColor = cd.Color;
@@ -162,40 +163,39 @@ namespace Paint_Program
         }
 
         static Point set_point(PictureBox pb, Point pt)
-        { // method to set & return color palette image point
+        { // helper function to calculate points in relation to the picturebox
             float pX = 1f * pb.Image.Width / pb.Width;
             float pY = 1f * pb.Image.Height / pb.Height;
             return new Point((int)(pt.X * pX), (int)(pt.Y * pY));
         }
 
         private void color_picker_MouseClick(object sender, MouseEventArgs e)
-        { // if user selects any color from color_picker img then set that color to new_color, pen_color, & pic_color
-            Point point = set_point(color_picker, e.Location);
+        { // set the color from the color picker image
             pic_color.BackColor = ((Bitmap)color_picker.Image).GetPixel(point.X, point.Y);
             new_color = pic_color.BackColor;
-            p.Color = pic_color.BackColor;
+            p.Color = pic_color.BackColor; // set pen color to selected color
         }
 
         private void validate(Bitmap bm, Stack<Point>sp, int x, int y, Color old_color, Color new_color)
-        { // method to validate pixel old_color before filling the shape to the new_color
+        { // validate the pixel color before filling it with new color
             Color cx = bm.GetPixel(x, y);
             if (cx==old_color)
             {
                 sp.Push(new Point(x, y));
-                bm.SetPixel(x, y, new_color);
+                bm.SetPixel(x, y, new_color); // fill the pixel with new color
             }
         }
 
         public void Fill(Bitmap bm, int x, int y, Color new_clr)
-        { // floodfill function using validate method
+        { // flood fill function to fill shapes with color
             Color old_color = bm.GetPixel(x, y);
             Stack<Point> pixel = new Stack<Point>();
             pixel.Push(new Point(x, y));
             bm.SetPixel(x, y, new_clr);
-            if (old_color == new_clr) return;
+            if (old_color == new_clr) return; // stop if the color is already the same
 
             while(pixel.Count > 0)
-            { // this method will get the old pixel color and fill new_color from the clicked point till the stack count > 0 else if the old_color is equal to new_color then return...do nothing
+            { // fill surrounding pixels until all are colored
                 Point pt = (Point)pixel.Pop();
                 if(pt.X > 0 && pt.Y > 0 && pt.X < bm.Width - 1 && pt.Y < bm.Height - 1)
                 {
@@ -209,27 +209,27 @@ namespace Paint_Program
         }
 
         private void pic_MouseClick(object sender, MouseEventArgs e)
-        {
+        { // handle mouse click to trigger fill tool
             if (index == 7)
             {
                 Point point = set_point(pic,e.Location);
-                Fill(bm, point.X, point.Y, new_color);
+                Fill(bm, point.X, point.Y, new_color); // fill the area with selected color
             }
         }
 
         private void btn_fill_Click(object sender, EventArgs e)
-        {
+        { // select fill tool
             index = 7;
         }
 
         private void btn_save_Click(object sender, EventArgs e)
-        { // method to save drawing
+        { // save the drawing as an image file
             var sfd = new SaveFileDialog();
             sfd.Filter = "Image(*.jpg) |*.jpg| (*.*|*.*";
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 Bitmap btm = bm.Clone(new Rectangle(0, 0, pic.Width, pic.Height), bm.PixelFormat);
-                btm.Save(sfd.FileName, ImageFormat.Jpeg);
+                btm.Save(sfd.FileName, ImageFormat.Jpeg); // save the image as jpeg
                 MessageBox.Show("Image Save Sucessfully!");
             }
 
