@@ -171,6 +171,7 @@ namespace Paint_Program
 
         private void color_picker_MouseClick(object sender, MouseEventArgs e)
         { // set the color from the color picker image
+            Point point = set_point(color_picker, e.Location);
             pic_color.BackColor = ((Bitmap)color_picker.Image).GetPixel(point.X, point.Y);
             new_color = pic_color.BackColor;
             p.Color = pic_color.BackColor; // set pen color to selected color
